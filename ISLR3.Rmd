@@ -1,0 +1,192 @@
+Analysing Boston data set and modelling median household value using linear regression model!
+:D
+
+Include packages for datasets and functions
+```{r}
+library(MASS)
+library(ISLR)
+```
+
+Can call help on dataset to read documentation
+See dataframe's first few rows
+```{r}
+?Boston
+head(Boston)
+attach(Boston)
+```
+Housing Values in Suburbs of Boston
+Description
+The Boston data frame has 506 rows and 14 columns.
+
+Usage
+Boston
+Format
+This data frame contains the following columns:
+
+crim
+per capita crime rate by town.
+
+zn
+proportion of residential land zoned for lots over 25,000 sq.ft.
+
+indus
+proportion of non-retail business acres per town.
+
+chas
+Charles River dummy variable (= 1 if tract bounds river; 0 otherwise).
+
+nox
+nitrogen oxides concentration (parts per 10 million).
+
+rm
+average number of rooms per dwelling.
+
+age
+proportion of owner-occupied units built prior to 1940.
+
+dis
+weighted mean of distances to five Boston employment centres.
+
+rad
+index of accessibility to radial highways.
+
+tax
+full-value property-tax rate per \$10,000.
+
+ptratio
+pupil-teacher ratio by town.
+
+black
+1000(Bk - 0.63)^2 where Bk is the proportion of blacks by town.
+
+lstat
+lower status of the population (percent).
+
+medv
+median value of owner-occupied homes in \$1000s.
+```{r}
+names(Boston)
+
+```
+Median income and crime rate
+```{r}
+plot(Boston$medv,Boston$crim)
+```
+Exploratory analysis : see all correlations
+```{r}
+cor(Boston)
+```
+High correlations between:
+indus dis
+indus tax
+nox age dis
+tax rad
+```{r}
+plot( dis,indus)
+
+```
+Insights
+Expected
+There is higher nox where industry proportion is higher
+As mean distance from employment center (dis increases), porportion of industries decreases
+we can say that employment is mainly in industries only
+Tax is higher where indus is higher
+nox is higher where dis is lower
+
+Commence model fitting:
+```{r}
+plot(medv~lstat,Boston)
+fit1 = lm(medv~lstat,data=Boston)
+fit1
+summary(fit1)
+cor(medv,lstat)
+sqrt(0.5441)
+```
+From the plot, Clearly where percent of lower status population is higher, median income is lower.
+Assessing model performance, since this is linear regression in one variable, the square root R squared value would be same as pearson correlation between lstat and medv. This has been shown by square rooting 0.5441 which is the multiple R squared value.
+Ofcourse, t values are quite high and thus it is significant-p values are extremely low.
+
+```{r}
+plot(medv~lstat,Boston)
+abline(fit1,col="red")
+names(fit1)
+confint(fit1)
+predict(fit1,data.frame(lstat=c(5,10,15)),interval ="confidence")
+
+```
+Plotting the predicted values of median income on the scatter plot of lstat and medv. The confint tells us that if we were to sample the data repeatedly, in between what 2 values would the true coefficient of lstat lie. We have also tried to predict the range of the median value of each of the three houses where lower status percent is given.
+
+Moving on to multiple variable linear regression,
+```{r}
+fit2 = lm(medv~lstat+age,data=Boston)
+summary(fit2)
+fit3 = lm(medv~.,data=Boston)
+summary(fit3)
+```
+R squared jumped from 50% to 70% when all variables were included.
+Also note that when just lstat and age were present in model both were significant. However after including all variables, lstat remains significant but age becomes insignficant. Meaning that, some other variable is explaining the variance instead of age, implying that some variable is correlated with age.
+Some graphs of current model:
+```{r}
+par(mfrow=c(1,1))
+plot(fit3)
+```
+
+Looking at the residuals vs fitted graph, we can see that there is non linearity(Explain?)
+Remove age and indus as they were not siginificant
+```{r}
+fit4 = update(fit3,~.-age-indus)
+summary(fit4)
+```
+
+Now incorporating nonlinear terms and interactions,
+not incorporating, this is now a different model, We will introduce interaction term.Adjusted r squared is lower than previous.
+```{r}
+fit5 = lm(medv~lstat*age,Boston) ##interaction with main effects included
+summary(fit5)
+```
+
+As we can see, lstat is still significant, but the lstat-age interaction is also singificant
+
+Now introducing non linear term of power 2, this is how it looks
+```{r}
+fit6 =lm(medv~lstat+I(lstat^2),Boston); summary(fit6);
+
+```
+
+As this model is non linear we can't use abline to plot the model points. Hence we use points function.
+```{r}
+plot(medv~lstat)
+points(lstat,fitted(fit6),col="red",pch=20)
+
+```
+
+Another way to model nonlinearly is using poly function
+```{r}
+fit7=lm(medv~poly(lstat,4))
+summary(fit7)
+plot(medv~lstat)
+points(lstat,fitted(fit7),col="blue",pch=20)
+points(lstat,fitted(fit6),col="red",pch=20)
+
+```
+We can see blue model(power 4 one) over fits the data. We can see this by comparing their r squared values earlier was 63% then it became 67%.
+
+
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
