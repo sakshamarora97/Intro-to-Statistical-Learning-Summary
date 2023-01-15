@@ -1,4 +1,5 @@
-Documentation and Codes of Statistical Learning 
+Documentation and Codes of Statistical Learning \
+\
 Syllabus Covered:\
 Linear Regression\
 Logistic Regression\
